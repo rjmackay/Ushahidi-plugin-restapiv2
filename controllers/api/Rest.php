@@ -13,7 +13,6 @@
  * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
  */
 
-require_once(Kohana::find_file('libraries', 'rest'));
 
 class Rest_Controller extends Controller {
 	
@@ -29,6 +28,46 @@ class Rest_Controller extends Controller {
 	
 	public function index()
 	{
-		throw new Rest_404_Exception();
+		$this->rest_error(404);
+	}
+	
+	public function rest_error($error, $message = FALSE, $page = FALSE)
+	{
+		header("Content-type: application/json; charset=utf-8");
+		
+		if ($page === FALSE)
+		{
+			// Construct the page URI using Router properties
+			$page = Router::$current_uri.Router::$url_suffix.Router::$query_string;
+		}
+		
+		switch ($error)
+		{
+			case 404:
+				header($_SERVER['SERVER_PROTOCOL'] . ' 404 File Not Found');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_404', $page);
+				break;
+			case 401:
+				header($_SERVER['SERVER_PROTOCOL'] . ' 401 Unauthorized');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_401', $page);
+				break;
+			case 501:
+				header($_SERVER['SERVER_PROTOCOL'] . ' 501 Not Implemented');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_501', $page);
+				break;
+			case 405:
+				header($_SERVER['SERVER_PROTOCOL'] . ' 405 Not Allowed');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_405', $page);
+				break;
+			default:
+				header($_SERVER['SERVER_PROTOCOL'] . ' '.$error);
+				break;
+		}
+		echo json_encode(array(
+			'error' => $error,
+			'message' => $message
+		));
+		//throw new Exception($message);
+		exit();
 	}
 }

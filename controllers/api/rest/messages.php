@@ -13,7 +13,6 @@
  * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
  */
 
-require_once(Kohana::find_file('libraries', 'rest'));
 require(Kohana::find_file('controllers/api', 'rest'));
 
 class Messages_Controller extends Rest_Controller {
@@ -33,19 +32,19 @@ class Messages_Controller extends Rest_Controller {
 
 			case "POST":
 				// Messages are read-only
-				throw new Rest_501_Exception();
+				$this->rest_error(405);
 				
 			break;
 			
 			case "PUT":
 				// Messages are read-only
-				throw new Rest_501_Exception();
+				$this->rest_error(405);
 				
 			break;
 			
 			case "DELETE":
 				// Messages are read-only
-				throw new Rest_501_Exception();
+				$this->rest_error(405);
 				
 			break;
 		}
@@ -71,13 +70,13 @@ class Messages_Controller extends Rest_Controller {
 			break;
 
 			case "POST":
-				throw new Rest_501_Exception();
+				$this->rest_error(501);
 				
 			break;
 			
 			case "PUT":
 				// Messages are read-only
-				throw new Rest_501_Exception(); // 405?
+				$this->rest_error(405);
 				
 			break;
 			
@@ -89,7 +88,7 @@ class Messages_Controller extends Rest_Controller {
 				}
 				else
 				{
-					throw new Rest_404_Exception;
+					$this->rest_error(404);
 				}
 
 			break;
@@ -103,7 +102,7 @@ class Messages_Controller extends Rest_Controller {
 			$message = ORM::factory('message')->find(1);
 			
 			if (! $message->loaded) {
-				throw new Rest_404_Exception();
+				$this->rest_error(404);
 			}
 			
 			//var_dump($message);
