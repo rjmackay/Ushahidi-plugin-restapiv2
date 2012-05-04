@@ -1,0 +1,146 @@
+<?php defined('SYSPATH') OR die('No direct access allowed.');
+
+/**
+ * Messages Controller - API Controller for Messages
+ *
+ * LICENSE: This source file is subject to LGPL license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.gnu.org/copyleft/lesser.html
+ * @author     Ushahidi Team <team@ushahidi.com>
+ * @package    Ushahidi - http://source.ushahididev.com
+ * @subpackage Controllers
+ * @copyright  Ushahidi - http://www.ushahidi.com
+ * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
+ */
+
+require_once(Kohana::find_file('libraries', 'rest'));
+require(Kohana::find_file('controllers/api', 'rest'));
+
+class Messages_Controller extends Rest_Controller {
+	
+	public function index()
+	{
+		// Check auth here
+		
+		// Process search strings
+		// ie by type
+		
+		switch (strtoupper(request::method()))
+		{
+			case "GET":
+				echo json_encode($this->get_messages_array());
+			break;
+
+			case "POST":
+				// Messages are read-only
+				throw new Rest_501_Exception();
+				
+			break;
+			
+			case "PUT":
+				// Messages are read-only
+				throw new Rest_501_Exception();
+				
+			break;
+			
+			case "DELETE":
+				// Messages are read-only
+				throw new Rest_501_Exception();
+				
+			break;
+		}
+	}
+	
+	public function single()
+	{
+		// Check auth here
+		
+		if (intval(Router::$arguments[0]))
+		{
+			$id = intval(Router::$arguments[0]);
+		}
+		else
+		{
+			throw new Kohana_Exception();
+		}
+
+		switch (strtoupper(request::method()))
+		{
+			case "GET":
+				echo json_encode($this->get_messages_array($id));
+			break;
+
+			case "POST":
+				throw new Rest_501_Exception();
+				
+			break;
+			
+			case "PUT":
+				// Messages are read-only
+				throw new Rest_501_Exception(); // 405?
+				
+			break;
+			
+			case "DELETE":
+				$message = ORM::factory('message')->find($id);
+				if ($message->loaded)
+				{
+					$message->delete();
+				}
+				else
+				{
+					throw new Rest_404_Exception;
+				}
+
+			break;
+		}
+	}
+	
+	private function get_messages_array($id = FALSE)
+	{
+		if ($id)
+		{
+			$message = ORM::factory('message')->find(1);
+			
+			if (! $message->loaded) {
+				throw new Rest_404_Exception();
+			}
+			
+			//var_dump($message);
+			return $this->add_data_to_message($message->as_array());
+		}
+		else
+		{
+			$messages = ORM::factory('message')->find_all();
+			
+			$messages_array = array();
+			foreach ($messages as $message)
+			{
+				$message_array = $message->as_array();
+				$message_array = $this->add_data_to_message($message_array);
+				
+				$messages_array[$message->id] = $message_array;
+			}
+			
+			return $messages_array;
+		}
+	}
+	
+	private function add_data_to_message($message_array)
+	{
+		static $message_type;
+		if (!$message_type)
+		{
+			$message_type = ORM::factory('service')->select_list('id','service_name');
+		}
+		
+		$message_array['message_type'] = $message_type[$message_array['message_type']];
+		if ($message_array['incident_id'])
+			$message_array['incident_id'] = array($message_array['incident_id'] => url::site(rest_controller::$api_base_url.'/incidents/'.$message_array['incident_id']));
+		
+		$message_array['url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
+		
+		return $message_array;
+	}
+}
+	
