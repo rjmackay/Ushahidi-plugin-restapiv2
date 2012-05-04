@@ -27,6 +27,7 @@ class Rest_Controller extends Controller {
 	public function __construct()
 	{
 		$this->db = Database::instance();
+		$this->auth = Auth::instance();
 		
 		header("Cache-Control: no-cache, must-revalidate");
 		// HTTP/1.1
@@ -80,12 +81,11 @@ class Rest_Controller extends Controller {
 
 	public function _login()
 	{
-		$auth = Auth::instance();
 
 		// Is user previously authenticated?
-		if ($auth->logged_in())
+		if ($this->auth->logged_in())
 		{
-			return $auth->get_user()->id;
+			return $this->auth->get_user()->id;
 		}
 		else
 		{
@@ -97,9 +97,9 @@ class Rest_Controller extends Controller {
 
 				try
 				{
-					if ($auth->login($username, $password))
+					if ($this->auth->login($username, $password))
 					{
-						return $auth->get_user()->id;
+						return $this->auth->get_user()->id;
 					}
 					else
 					{
@@ -118,6 +118,18 @@ class Rest_Controller extends Controller {
 			$this->_prompt_login();
 			return FALSE;
 		}
+	}
+	
+	/*
+	 * Check if user is admin
+	 **/
+	public function _login_admin()
+	{
+		if ( ! $this->auth->logged_in('login') OR $this->auth->logged_in('member'))
+		{
+			return FALSE;
+		}
+		return TRUE;
 	}
 
 	/**
