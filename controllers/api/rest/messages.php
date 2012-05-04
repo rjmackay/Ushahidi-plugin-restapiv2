@@ -17,9 +17,20 @@ require(Kohana::find_file('controllers/api', 'rest'));
 
 class Messages_Controller extends Rest_Controller {
 	
+	public function __construct()
+	{
+		parent::__construct();
+		
+		// Check auth here
+		if ( ! $this->_login())
+		{
+			// @todo better error message
+			return FALSE;
+		}
+	}
+	
 	public function index()
 	{
-		// Check auth here
 		
 		// Process search strings
 		// ie by type
