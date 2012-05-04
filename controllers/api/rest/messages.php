@@ -146,9 +146,14 @@ class Messages_Controller extends Rest_Controller {
 		
 		$message_array['message_type'] = $message_type[$message_array['message_type']];
 		if ($message_array['incident_id'])
-			$message_array['incident_id'] = array($message_array['incident_id'] => url::site(rest_controller::$api_base_url.'/incidents/'.$message_array['incident_id']));
+		{
+			$message_array['incident_id'] = array($message_array['incident_id'] => array(
+				'api_url' => url::site(rest_controller::$api_base_url.'/incidents/'.$message_array['incident_id']),
+				'url' => url::site('/reports/view/'.$message_array['incident_id'])
+			));
+		}
 		
-		$message_array['url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
+		$message_array['api_url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
 		
 		return $message_array;
 	}
