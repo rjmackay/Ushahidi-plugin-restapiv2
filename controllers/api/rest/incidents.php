@@ -119,7 +119,7 @@ class Incidents_Controller extends Rest_Controller {
 	{
 		if ($id)
 		{
-			$incident = ORM::factory('incident')->find($id);
+			$incident = ORM::factory('incident')->with('location')->with('incident_person')->with('user')->find($id);
 			if (! $this->admin AND $incident->incident_active != 1)
 			{
 				$this->rest_error(401);
@@ -130,7 +130,7 @@ class Incidents_Controller extends Rest_Controller {
 			}
 			
 			//var_dump($incident);
-			return $this->add_data_to_incident($incident->as_array());
+			return $this->add_data_to_incident($incident->as_array(), $incident);
 		}
 		else
 		{
@@ -151,7 +151,7 @@ class Incidents_Controller extends Rest_Controller {
 			foreach ($incidents as $incident)
 			{
 				$incident_array = $incident->as_array();
-				$incident_array = $this->add_data_to_incident($incident_array);
+				$incident_array = $this->add_data_to_incident($incident_array, $incident);
 				
 				$incidents_array[] = $incident_array;
 			}
@@ -160,7 +160,7 @@ class Incidents_Controller extends Rest_Controller {
 		}
 	}
 	
-	private function add_data_to_incident($incident_array)
+	private function add_data_to_incident($incident_array, $incident)
 	{
 		/*static $incident_type;
 		if (!$incident_type)
@@ -175,6 +175,19 @@ class Incidents_Controller extends Rest_Controller {
 				'url' => url::site('/reports/view/'.$incident_array['incident_id'])
 			));
 		}*/
+		
+		// Add categories
+		
+		
+		// Add location
+		$incident_array['location'] = $incident->location->as_array();
+		
+		// Add incident_person
+		$incident_array['incident_person'] = $incident->incident_person->as_array(); //@todo sanitize
+		
+		// Add user?
+		$incident_array['user'] = $incident->user->as_array(); //@todo sanitize
+		// Add media?
 		
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
 		
