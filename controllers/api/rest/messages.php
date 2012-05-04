@@ -129,7 +129,7 @@ class Messages_Controller extends Rest_Controller {
 				$message_array = $message->as_array();
 				$message_array = $this->add_data_to_message($message_array);
 				
-				$messages_array[$message->id] = $message_array;
+				$messages_array[] = $message_array;
 			}
 			
 			return $messages_array;
