@@ -16,9 +16,18 @@
 class Rest_Controller extends Controller {
 
 	protected static $api_base_url = 'api/rest';
+	
+	protected $limit = 20;
+	protected $order_field = 'id';
+	protected $sort = 'DESC';
+	
+	protected $allowed_order_fields = array('id');
+	protected $max_record_limit = 100;
 
 	public function __construct()
 	{
+		$this->db = Database::instance();
+		
 		header("Cache-Control: no-cache, must-revalidate");
 		// HTTP/1.1
 		header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
@@ -122,6 +131,30 @@ class Rest_Controller extends Controller {
 	{
 		header('WWW-Authenticate: Basic realm="' . Kohana::config('settings.site_name') . '"');
 		$this->rest_error(401);
+	}
+
+	protected function _get_query_parameters()
+	{
+		if (isset($_REQUEST['limit']) 
+				AND intval($_REQUEST['limit']) > 0
+				AND $_REQUEST['limit'] <= $this->max_record_limit
+			)
+		{
+			$this->limit = intval($_REQUEST['limit']);
+		}
+		
+		if (isset($_REQUEST['orderfield']) AND in_array($_REQUEST['orderfield'], $this->allowed_order_fields))
+		{
+			$this->order_field = $_REQUEST['orderfield'];
+		}
+		
+		if (isset($_REQUEST['sort']))
+		{
+			if ($_REQUEST['sort'] == 'ASC') $this->sort = 'ASC';
+			elseif ($_REQUEST['sort'] == 'DESC') $this->sort = 'DESC';
+			elseif ($_REQUEST['sort'] == 0) $this->sort = 'ASC';
+			elseif ($_REQUEST['sort'] == 1) $this->sort = 'DESC';
+		}
 	}
 
 }

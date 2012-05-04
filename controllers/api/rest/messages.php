@@ -92,7 +92,7 @@ class Messages_Controller extends Rest_Controller {
 			break;
 			
 			case "DELETE":
-				$message = ORM::factory('message')->find($id);
+				$message = ORM::factory('message',$id);
 				if ($message->loaded)
 				{
 					$message->delete();
@@ -110,7 +110,7 @@ class Messages_Controller extends Rest_Controller {
 	{
 		if ($id)
 		{
-			$message = ORM::factory('message')->find(1);
+			$message = ORM::factory('message',$id);
 			
 			if (! $message->loaded) {
 				$this->rest_error(404);
@@ -121,7 +121,9 @@ class Messages_Controller extends Rest_Controller {
 		}
 		else
 		{
-			$messages = ORM::factory('message')->find_all();
+			$this->_get_query_parameters();
+			
+			$messages = ORM::factory('message')->limit($this->limit)->orderby($this->order_field,$this->sort)->find_all();
 			
 			$messages_array = array();
 			foreach ($messages as $message)
