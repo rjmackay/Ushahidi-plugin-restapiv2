@@ -38,6 +38,7 @@ class rest {
 	{
 		// Add custom routing for appcache file
 		Event::$data['api/rest/messages/([0-9]+)'] = 'api/rest/messages/single/$1';
+		Event::$data['api/rest/incidents/([0-9]+)'] = 'api/rest/incidents/single/$1';
 	}
 
 }
