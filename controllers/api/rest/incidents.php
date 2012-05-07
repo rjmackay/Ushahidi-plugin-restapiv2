@@ -177,16 +177,48 @@ class Incidents_Controller extends Rest_Controller {
 		}*/
 		
 		// Add categories
-		
-		
+		$incident_array['category'] = array();
+		foreach ($incident->category as $category)
+		{
+			if ($category->category_visible AND ! $this->admin)
+			{
+				$incident_array['category'][] = $category->as_array();
+			}
+		}
 		// Add location
+		// @todo filter on location_visible
 		$incident_array['location'] = $incident->location->as_array();
 		
 		// Add incident_person
-		$incident_array['incident_person'] = $incident->incident_person->as_array(); //@todo sanitize
+		if ($this->admin)
+		{
+			$incident_array['incident_person'] = $incident->incident_person->as_array(); //@todo sanitize
+		}
+		else
+		{
+			// @todo check what should be public
+			$incident_array['incident_person'] = array(
+				'id' => $incident->incident_person->id,
+				'person_first' => $incident->incident_person->person_first,
+				'person_last' => $incident->incident_person->person_last
+			);
+		}
 		
 		// Add user?
-		$incident_array['user'] = $incident->user->as_array(); //@todo sanitize
+		if ($this->admin)
+		{
+			$incident_array['user'] = $incident->user->as_array(); //@todo sanitize
+		}
+		else
+		{
+			// @todo check what should be public
+			$incident_array['user'] = array(
+				'id' => $incident->user->id,
+				'name' => $incident->user->name,
+				'username' => $incident->user->username
+			);
+		}
+		
 		// Add media?
 		
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
