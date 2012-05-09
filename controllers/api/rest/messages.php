@@ -13,7 +13,7 @@
  * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
  */
 
-require(Kohana::find_file('controllers/api', 'rest'));
+require(Kohana::find_file('controllers/api', 'rest', TRUE));
 
 class Messages_Controller extends Rest_Controller {
 	
@@ -156,6 +156,9 @@ class Messages_Controller extends Rest_Controller {
 		}
 		
 		$message_array['api_url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
+		
+		$message_array['updated_at'] = $message_array['message_date'];
+		$message_array['updated_at'] = date('c',strtotime($message_array['updated_at']));
 		
 		return $message_array;
 	}

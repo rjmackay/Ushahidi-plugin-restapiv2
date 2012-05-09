@@ -13,7 +13,7 @@
  * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
  */
 
-require(Kohana::find_file('controllers/api', 'rest'));
+require(Kohana::find_file('controllers/api', 'rest', TRUE));
 
 class Incidents_Controller extends Rest_Controller {
 	
@@ -180,7 +180,8 @@ class Incidents_Controller extends Rest_Controller {
 		$incident_array['category'] = array();
 		foreach ($incident->category as $category)
 		{
-			if ($category->category_visible AND ! $this->admin)
+			// Only include visible categories unless we're an admin
+			if ($this->admin OR $category->category_visible)
 			{
 				$incident_array['category'][] = $category->as_array();
 			}
@@ -222,6 +223,9 @@ class Incidents_Controller extends Rest_Controller {
 		// Add media?
 		
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
+		
+		$incident_array['updated_at'] = $incident->incident_datemodify == null ? $incident->incident_dateadd : $incident->incident_datemodify;
+		$incident_array['updated_at'] = date('c',strtotime($incident_array['updated_at']));
 		
 		return $incident_array;
 	}
