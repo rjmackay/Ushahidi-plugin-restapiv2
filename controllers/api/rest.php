@@ -53,7 +53,7 @@ class Rest_Controller extends Controller {
 		));
 	}
 
-	public function rest_error($error, $message = FALSE, $page = FALSE)
+	protected function rest_error($error, $message = FALSE, $page = FALSE)
 	{
 		header("Content-type: application/json; charset=utf-8");
 
@@ -90,7 +90,7 @@ class Rest_Controller extends Controller {
 		exit();
 	}
 
-	public function _login()
+	protected function _login()
 	{
 		// Is user previously authenticated?
 		if ($this->auth->logged_in())
@@ -123,7 +123,7 @@ class Rest_Controller extends Controller {
 	/*
 	 * Check if user is admin
 	 **/
-	public function _login_admin()
+	protected function _login_admin()
 	{
 		if ( ! $this->auth->logged_in('login') OR $this->auth->logged_in('member'))
 		{
