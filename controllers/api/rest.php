@@ -16,6 +16,7 @@
 class Rest_Controller extends Controller {
 
 	protected static $api_base_url = 'api/rest';
+	protected static $api_version = 'restapi-0.1';
 	
 	protected $limit = 20;
 	protected $order_field = 'id';
@@ -39,7 +40,17 @@ class Rest_Controller extends Controller {
 
 	public function index()
 	{
-		$this->rest_error(404);
+		$resources = array(
+			'messages' => url::site(self::$api_base_url.'/messages'),
+			'incidents' => url::site(self::$api_base_url.'/incidents'),
+		);
+
+		echo json_encode(array(
+			'resources' => $resources,
+			'ushahidi_version' => Kohana::config('settings.ushahidi_version'),
+			'api_version' => self::$api_base_url,
+			'db_version' => Kohana::config('settings.db_version'),
+		));
 	}
 
 	public function rest_error($error, $message = FALSE, $page = FALSE)
