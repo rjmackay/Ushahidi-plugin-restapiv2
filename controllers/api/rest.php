@@ -30,6 +30,11 @@ class Rest_Controller extends Controller {
 		$this->db = Database::instance();
 		$this->auth = Auth::instance();
 		
+		// Reset the session - auth must be passed everytime
+		$_SESSION = array();
+		Session::instance()->set(Kohana::config('auth.session_key'), null);
+		$this->_login();
+		
 		header("Cache-Control: no-cache, must-revalidate");
 		// HTTP/1.1
 		header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
@@ -113,10 +118,12 @@ class Rest_Controller extends Controller {
 			catch (Exception $e)
 			{
 			}
+			
+			// Return access denied
+			$this->rest_error(401);
 		}
 
-		// Return access denied
-		$this->rest_error(401);
+		// No auth details passed - return FALSE (not logged in)
 		return FALSE;
 	}
 	

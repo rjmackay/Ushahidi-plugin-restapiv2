@@ -22,7 +22,7 @@ class Incidents_Controller extends Rest_Controller {
 		parent::__construct();
 		
 		// Check auth here
-		if( ! $this->_login_admin())
+		if( ! $this->_login_admin() )
 		{
 			$this->admin = FALSE;
 		}
@@ -48,6 +48,8 @@ class Incidents_Controller extends Rest_Controller {
 				// Code to add new incident
 				if (! $this->admin)
 					$this->rest_error(401);
+				
+				$this->rest_error(501);
 				
 			break;
 			

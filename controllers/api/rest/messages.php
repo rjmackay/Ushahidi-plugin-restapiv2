@@ -22,7 +22,7 @@ class Messages_Controller extends Rest_Controller {
 		parent::__construct();
 		
 		// Check auth here
-		if ( ! $this->_login() OR ! $this->_login_admin())
+		if ( ! $this->_login() OR ! $this->_login_admin() )
 		{
 			$this->rest_error(401);
 			return FALSE;
