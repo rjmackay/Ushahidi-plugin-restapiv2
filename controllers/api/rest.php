@@ -81,43 +81,32 @@ class Rest_Controller extends Controller {
 
 	public function _login()
 	{
-
 		// Is user previously authenticated?
 		if ($this->auth->logged_in())
 		{
 			return $this->auth->get_user()->id;
 		}
-		else
+		//Get username and password
+		elseif (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']))
 		{
-			//Get username and password
-			if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']))
-			{
-				$username = filter_var($_SERVER['PHP_AUTH_USER'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
-				$password = filter_var($_SERVER['PHP_AUTH_PW'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
+			$username = filter_var($_SERVER['PHP_AUTH_USER'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
+			$password = filter_var($_SERVER['PHP_AUTH_PW'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
 
-				try
+			try
+			{
+				if ($this->auth->login($username, $password))
 				{
-					if ($this->auth->login($username, $password))
-					{
-						return $this->auth->get_user()->id;
-					}
-					else
-					{
-						$this->_prompt_login();
-						return FALSE;
-					}
-				}
-				catch (Exception $e)
-				{
-					$this->_prompt_login();
-					return FALSE;
+					return $this->auth->get_user()->id;
 				}
 			}
-
-			//prompt user to login
-			$this->_prompt_login();
-			return FALSE;
+			catch (Exception $e)
+			{
+			}
 		}
+
+		// Return access denied
+		$this->rest_error(401);
+		return FALSE;
 	}
 	
 	/*
@@ -130,19 +119,6 @@ class Rest_Controller extends Controller {
 			return FALSE;
 		}
 		return TRUE;
-	}
-
-	/**
-	 * Prompts user to login.
-	 *
-	 * @param int user_id - The currently logged in user id to be passed as the
-	 *                      realm value.
-	 * @return void
-	 */
-	private function _prompt_login($user_id = 0)
-	{
-		header('WWW-Authenticate: Basic realm="' . Kohana::config('settings.site_name') . '"');
-		$this->rest_error(401);
 	}
 
 	protected function _get_query_parameters()
