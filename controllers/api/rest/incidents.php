@@ -134,13 +134,13 @@ class Incidents_Controller extends Rest_Controller {
 		if ($id)
 		{
 			$incident = ORM::factory('incident')->with('location')->with('incident_person')->with('user')->find($id);
+			if (! $incident->loaded) {
+				$this->rest_error(404);
+			}
+			
 			if (! $this->admin AND $incident->incident_active != 1)
 			{
 				$this->rest_error(401);
-			}
-			
-			if (! $incident->loaded) {
-				$this->rest_error(404);
 			}
 			
 			//var_dump($incident);
