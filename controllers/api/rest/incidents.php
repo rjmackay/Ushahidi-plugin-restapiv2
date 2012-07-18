@@ -34,7 +34,6 @@ class Incidents_Controller extends Rest_Controller {
 	
 	public function index()
 	{
-		
 		// Process search strings
 		// ie by type
 		
@@ -49,7 +48,11 @@ class Incidents_Controller extends Rest_Controller {
 				if (! $this->admin)
 					$this->rest_error(401);
 				
-				$this->rest_error(501);
+				// Make sure we don't have an incident id
+				$this->data->id = null;
+				$this->data->location_id = null;
+				
+				echo json_encode($this->save_incident($this->data));
 				
 			break;
 			
@@ -96,6 +99,15 @@ class Incidents_Controller extends Rest_Controller {
 				// Code to replace / update incident
 				if (! $this->admin)
 					$this->rest_error(401);
+				
+				// check id == url id
+				if ($this->data->id != $id)
+				{
+					$errors = array(Kohana::lang('restapi_error.incident_id_mismatch'));
+					$this->rest_error(400, $errors);
+				}
+				
+				echo json_encode($this->save_incident($this->data));
 				
 			break;
 			
@@ -185,9 +197,13 @@ class Incidents_Controller extends Rest_Controller {
 			// Only include visible categories unless we're an admin
 			if ($this->admin OR $category->category_visible)
 			{
-				$incident_array['category'][] = $category->as_array();
+				$category_data = $category->as_array();
+				$category_data['category_image'] = $category_data['category_image'] ? url::convert_uploaded_to_abs($category_data['category_image']) : $category_data['category_image'];
+				$category_data['category_image_thumb'] = $category_data['category_image_thumb'] ? url::convert_uploaded_to_abs($category_data['category_image_thumb']) : $category_data['category_image_thumb'];
+				$incident_array['category'][] = $category_data;
 			}
 		}
+		
 		// Add location
 		// @todo filter on location_visible
 		$incident_array['location'] = $incident->location->as_array();
@@ -211,6 +227,8 @@ class Incidents_Controller extends Rest_Controller {
 		if ($this->admin)
 		{
 			$incident_array['user'] = $incident->user->as_array(); //@todo sanitize
+			unset($incident_array['user']['password']);
+			unset($incident_array['user']['code']);
 		}
 		else
 		{
@@ -223,6 +241,22 @@ class Incidents_Controller extends Rest_Controller {
 		}
 		
 		// Add media?
+		$incident_array['media'] = array();
+		foreach ($incident->media as $media)
+		{
+			// Only include visible categories unless we're an admin
+			if ($this->admin OR $media->media_active)
+			{
+				$media_data = $media->as_array();
+				if ($media->media_link AND ! valid::url($media->media_link))
+				{
+					$media_data['media_link'] = url::convert_uploaded_to_abs($media_data['media_link']);
+					$media_data['media_medium'] = url::convert_uploaded_to_abs($media_data['media_medium']);
+					$media_data['media_thumb'] = url::convert_uploaded_to_abs($media_data['media_thumb']);
+				}
+				$incident_array['media'][] = $media_data;
+			}
+		}
 		
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
 		
@@ -231,5 +265,96 @@ class Incidents_Controller extends Rest_Controller {
 		
 		return $incident_array;
 	}
+
+/**
+	 * The actual reporting
+	 *
+	 * @return int
+	 */
+	private function save_incident($data)
+	{
+		// Mash data into format expected by reports helper
+		$post = array(
+			'location_id' => $data->location_id,
+			'incident_id' => $data->id,
+			'incident_title' => $data->incident_title,
+			'incident_description' => $data->incident_description,
+			'incident_date' => date('m/d/Y',strtotime($data->incident_date)),
+			'incident_hour' => date('h',strtotime($data->incident_date)),
+			'incident_minute' => date('i',strtotime($data->incident_date)),
+			'incident_ampm' => date('a',strtotime($data->incident_date)),
+			'latitude' => $data->location->latitude,
+			'longitude' => $data->location->longitude,
+			'location_name' => $data->location->location_name,
+			'country_id' => $data->location->country_id,
+			'incident_category' => array(),
+			'incident_news' => array(),
+			'incident_video' => array(),
+			'incident_photo' => array(),
+			'person_first' => $data->incident_person->person_first,
+			'person_last' => $data->incident_person->person_last,
+			'person_email' => $data->incident_person->person_email,
+			'person_phone' => $data->incident_person->person_phone,
+			'incident_active' => $data->incident_active,
+			'incident_verified' => $data->incident_verified,
+			'incident_zoom' => $data->incident_zoom
+			// message id? user id?
+		);
+		//var_dump($post);
+		
+		foreach($data->category as $cat)
+		{
+			$post['incident_category'][] = $cat->id;
+		}
+
+		// Action::report_submit_admin - Report Posted
+		Event::run('ushahidi_action.report_submit_admin', $post);
+
+		// Test to see if things passed the rule checks
+		if (reports::validate($post, TRUE))
+		{
+			// Yes! everything is valid
+			$location_id = $post->location_id;
+
+			// STEP 1: SAVE LOCATION
+			$location = new Location_Model($location_id);
+			reports::save_location($post, $location);
+
+			// STEP 2: SAVE INCIDENT
+			$incident_id = $post->incident_id;
+			$incident = new Incident_Model($incident_id);
+			reports::save_report($post, $incident, $location->id);
+
+			// STEP 2b: Record Approval/Verification Action
+			$verify = new Verify_Model();
+			reports::verify_approve($post, $verify, $incident);
+
+			// STEP 2c: SAVE INCIDENT GEOMETRIES
+			reports::save_report_geometry($post, $incident);
+
+			// STEP 3: SAVE CATEGORIES
+			reports::save_category($post, $incident);
+
+			// STEP 4: SAVE MEDIA
+			//reports::save_media($post, $incident);
+
+			// STEP 5: SAVE PERSONAL INFORMATION
+			reports::save_personal_info($post, $incident);
+
+			// Action::report_edit - Edited a Report
+			Event::run('ushahidi_action.report_edit', $incident);
+
+			// Success
+			return $this->get_incidents_array($incident->id);
+		}
+		else
+		{
+			// populate the error fields, if any
+			$errors = $post->errors('report');
+
+			$this->rest_error(400, $errors);
+		}
+	}
+
 }
 	

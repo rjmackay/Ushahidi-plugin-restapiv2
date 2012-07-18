@@ -24,6 +24,8 @@ class Rest_Controller extends Controller {
 	
 	protected $allowed_order_fields = array('id');
 	protected $max_record_limit = 100;
+	
+	protected $data = array();
 
 	public function __construct()
 	{
@@ -41,6 +43,12 @@ class Rest_Controller extends Controller {
 		// Date in the pass
 		// currently always json
 		header("Content-type: application/json; charset=utf-8");
+		
+		// Parse HTTP put data
+		if (strtoupper(request::method()) == 'PUT' OR strtoupper(request::method()) == 'POST')
+		{
+			$this->data = json_decode( file_get_contents("php://input") );
+		}
 	}
 
 	public function index()
@@ -82,10 +90,17 @@ class Rest_Controller extends Controller {
 				header($_SERVER['SERVER_PROTOCOL'] . ' 501 Not Implemented');
 				$message = $message ? $message : Kohana::lang('restapi_error.error_501', $page);
 				break;
+			case 400 :
+				header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_400', $page);
+				break;
 			case 405 :
 				header($_SERVER['SERVER_PROTOCOL'] . ' 405 Not Allowed');
 				$message = $message ? $message : Kohana::lang('restapi_error.error_405', $page);
 				break;
+			case 409 :
+				header($_SERVER['SERVER_PROTOCOL'] . ' 409 Conflict');
+				$message = $message ? $message : Kohana::lang('restapi_error.error_409', $page);
 			default :
 				header($_SERVER['SERVER_PROTOCOL'] . ' ' . $error);
 				break;
