@@ -102,6 +102,13 @@ class Incidents_Controller extends Rest_Controller {
 				if (! $this->admin)
 					$this->rest_error(401);
 				
+				// If no id posted (ie. from backbone.offline)
+				// Use ID form URL
+				if (!isset($this->data->id))
+				{
+					$this->data->id = $id;
+				}
+				
 				// check id == url id
 				if ($this->data->id != $id)
 				{
@@ -278,7 +285,7 @@ class Incidents_Controller extends Rest_Controller {
 		// Mash data into format expected by reports helper
 		$post = array(
 			'location_id' => $data->location_id,
-			'incident_id' => $data->id,
+			'incident_id' => isset($data->id) ? $data->id : $data->sid,
 			'incident_title' => $data->incident_title,
 			'incident_description' => $data->incident_description,
 			'incident_date' => date('m/d/Y',strtotime($data->incident_date)),
