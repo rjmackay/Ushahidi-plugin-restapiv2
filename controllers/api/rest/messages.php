@@ -16,6 +16,8 @@
 require(Kohana::find_file('controllers/api', 'rest', TRUE));
 
 class Messages_Controller extends Rest_Controller {
+		
+	protected $allowed_order_fields = array('id','message_from','message_type','message_date');
 	
 	public function __construct()
 	{

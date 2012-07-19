@@ -16,6 +16,8 @@
 require(Kohana::find_file('controllers/api', 'rest', TRUE));
 
 class Incidents_Controller extends Rest_Controller {
+		
+	protected $allowed_order_fields = array('id','incident_title','incident_date','incident_verified');
 	
 	public function __construct()
 	{

@@ -16,6 +16,8 @@
 require(Kohana::find_file('controllers/api', 'rest', TRUE));
 
 class Categories_Controller extends Rest_Controller {
+		
+	protected $allowed_order_fields = array('id','category_title','category_position','parent_id');
 	
 	public function __construct()
 	{
