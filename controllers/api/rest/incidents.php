@@ -282,38 +282,43 @@ class Incidents_Controller extends Rest_Controller {
 	 */
 	private function save_incident($data)
 	{
+		// Convert time once, so we use the same time() call for all fields
+		$time = isset($data->incident_date) ? strtotime($data->incident_date) : time();
+		
 		// Mash data into format expected by reports helper
 		$post = array(
 			'location_id' => $data->location_id,
 			'incident_id' => isset($data->id) ? $data->id : $data->sid,
 			'incident_title' => $data->incident_title,
 			'incident_description' => $data->incident_description,
-			'incident_date' => date('m/d/Y',strtotime($data->incident_date)),
-			'incident_hour' => date('h',strtotime($data->incident_date)),
-			'incident_minute' => date('i',strtotime($data->incident_date)),
-			'incident_ampm' => date('a',strtotime($data->incident_date)),
-			'latitude' => $data->location->latitude,
-			'longitude' => $data->location->longitude,
-			'location_name' => $data->location->location_name,
-			'country_id' => $data->location->country_id,
+			'incident_date' => date('m/d/Y', $time),
+			'incident_hour' => date('h', $time),
+			'incident_minute' => date('i', $time),
+			'incident_ampm' => date('a', $time),
+			'latitude' => isset($data->location->latitude) ? $data->location->latitude : null,
+			'longitude' => isset($data->location->longitude) ? $data->location->longitude : null,
+			'location_name' => isset($data->location->location_name) ? $data->location->location_name : null,
+			'country_id' => isset($data->location->country_id) ? $data->location->country_id : null,
 			'incident_category' => array(),
 			'incident_news' => array(),
 			'incident_video' => array(),
 			'incident_photo' => array(),
-			'person_first' => $data->incident_person->person_first,
-			'person_last' => $data->incident_person->person_last,
-			'person_email' => $data->incident_person->person_email,
-			'person_phone' => $data->incident_person->person_phone,
-			'incident_active' => $data->incident_active,
-			'incident_verified' => $data->incident_verified,
-			'incident_zoom' => $data->incident_zoom
+			'person_first' => isset($data->incident_person->person_first) ? $data->incident_person->person_first : '',
+			'person_last' => isset($data->incident_person->person_last) ? $data->incident_person->person_last : '',
+			'person_email' => isset($data->incident_person->person_email) ? $data->incident_person->person_email : '',
+			'person_phone' => isset($data->incident_person->person_phone) ? $data->incident_person->person_phone : '',
+			'incident_active' => isset($data->incident_active) ? $data->incident_active : null,
+			'incident_verified' => isset($data->incident_verified) ? $data->incident_verified : null,
+			'incident_zoom' => isset($data->incident_zoom) ? $data->incident_zoom : null,
 			// message id? user id?
 		);
 		//var_dump($post);
-		
-		foreach($data->category as $cat)
+		if (isset($data->category))
 		{
-			$post['incident_category'][] = $cat->id;
+			foreach($data->category as $cat)
+			{
+				$post['incident_category'][] = $cat->id;
+			}
 		}
 
 		// Action::report_submit_admin - Report Posted
