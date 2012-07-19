@@ -326,8 +326,7 @@ class Incidents_Controller extends Rest_Controller {
 			reports::save_report($post, $incident, $location->id);
 
 			// STEP 2b: Record Approval/Verification Action
-			$verify = new Verify_Model();
-			reports::verify_approve($post, $verify, $incident);
+			reports::verify_approve($incident);
 
 			// STEP 2c: SAVE INCIDENT GEOMETRIES
 			reports::save_report_geometry($post, $incident);
