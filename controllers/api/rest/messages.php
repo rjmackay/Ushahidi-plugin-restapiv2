@@ -119,7 +119,7 @@ class Messages_Controller extends Rest_Controller {
 			}
 			
 			//var_dump($message);
-			return $this->add_data_to_message($message->as_array());
+			return $this->add_data_to_message($message->as_array(), $message);
 		}
 		else
 		{
@@ -131,7 +131,7 @@ class Messages_Controller extends Rest_Controller {
 			foreach ($messages as $message)
 			{
 				$message_array = $message->as_array();
-				$message_array = $this->add_data_to_message($message_array);
+				$message_array = $this->add_data_to_message($message_array, $message);
 				
 				$messages_array[] = $message_array;
 			}
@@ -140,18 +140,25 @@ class Messages_Controller extends Rest_Controller {
 		}
 	}
 	
-	private function add_data_to_message($message_array)
+	private function add_data_to_message($message_array, $message)
 	{
-		static $message_type;
-		if (!$message_type)
+		static $services;
+		if (!$services)
 		{
-			$message_type = ORM::factory('service')->select_list('id','service_name');
+			$services = ORM::factory('service')->select_list('id','service_name');
 		}
 		
-		$message_array['message_type'] = $message_type[$message_array['message_type']];
+		$message_array['message_service'] = null;
+		if ($message_array['reporter_id'])
+		{
+			$message_array['reporter'] = $message->reporter->as_array();
+			$message_array['reporter']['service_name'] = $services[$message->reporter->service_id];
+			$message_array['message_service'] = $services[$message->reporter->service_id];
+		}
+		
 		if ($message_array['incident_id'])
 		{
-			$message_array['incident_id'] = array($message_array['incident_id'] => array(
+			$message_array['incident'] = array($message_array['incident_id'] => array(
 				'api_url' => url::site(rest_controller::$api_base_url.'/incidents/'.$message_array['incident_id']),
 				'url' => url::site('/reports/view/'.$message_array['incident_id'])
 			));
