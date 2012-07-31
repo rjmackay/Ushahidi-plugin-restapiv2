@@ -184,6 +184,9 @@ class Categories_Controller extends Rest_Controller {
 		
 		$category_array['api_url'] = url::site(rest_controller::$api_base_url.'/categories/'.$category_array['id']);
 		
+		$category_array['category_image'] = $category_array['category_image'] ? url::convert_uploaded_to_abs($category_array['category_image']) : $category_array['category_image'];
+		$category_array['category_image_thumb'] = $category_array['category_image_thumb'] ? url::convert_uploaded_to_abs($category_array['category_image_thumb']) : $category_array['category_image_thumb'];
+		
 		// No date attached to categories so always now
 		$category_array['updated_at'] = date('c');
 		
