@@ -67,9 +67,13 @@ class Categories_Controller extends Rest_Controller {
 		}
 	}
 	
+	/** 
+	 * Hack to return category tree via API
+	 * Avoids building the tree on the client side
+	 */
 	public function tree()
 	{
-		echo json_encode(category::get_category_tree_data());
+		echo json_encode(category::get_category_tree_data(FALSE, $this->admin));
 	}
 	
 	public function single()
