@@ -95,6 +95,34 @@ class Incidents_Controller extends Rest_Controller {
 				// Not sure what this would do? (maybe chain this for add categories etc)
 				$this->rest_error(501);
 				
+				$incident = ORM::factory('incident')->find($id);
+				if (! $incident->loaded) {
+					$this->rest_error(404);
+				}
+				
+				// Only admin's allowed to approve/verify
+				if (! $this->admin)
+					$this->rest_error(401);
+
+				switch ($this->data->action)
+				{
+					case 'activate':
+						$incident->incident_active = 1;
+						break;
+					case 'deactivate':
+						$incident->incident_active = 0;
+						break;
+					case 'verify':
+						$incident->incident_verified = 1;
+						break;
+					case 'unverify':
+						$incident->incident_verified = 0;
+						break;
+				}
+				$incident->save();
+				reports::verify_approve($incident);
+				
+				echo json_encode($this->get_incidents_array($id));
 			break;
 			
 			case "PUT":
