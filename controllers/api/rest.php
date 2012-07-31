@@ -26,15 +26,14 @@ class Rest_Controller extends Controller {
 	protected $max_record_limit = 300;
 	
 	protected $data = array();
+	
+	protected $auth_user = FALSE;
 
 	public function __construct()
 	{
 		$this->db = Database::instance();
 		$this->auth = Auth::instance();
 		
-		// Reset the session - auth must be passed everytime
-		$_SESSION = array();
-		Session::instance()->set(Kohana::config('auth.session_key'), null);
 		$this->_login();
 		
 		header("Cache-Control: no-cache, must-revalidate");
@@ -84,6 +83,7 @@ class Rest_Controller extends Controller {
 				break;
 			case 401 :
 				header($_SERVER['SERVER_PROTOCOL'] . ' 401 Unauthorized');
+				header('WWW-Authenticate: Basic realm="Ushahidi API"');
 				$message = $message ? $message : Kohana::lang('restapi_error.error_401', $page);
 				break;
 			case 501 :
@@ -110,24 +110,34 @@ class Rest_Controller extends Controller {
 		exit();
 	}
 
+	/**
+	 * Check if user is logged in
+	 * Special handling for API since we don't share sessions with the site
+	 * and errors are returned as HTTP code + JSON
+	 **/
 	protected function _login()
 	{
 		// Is user previously authenticated?
-		if ($this->auth->logged_in())
+		if ($this->auth_user AND $this->auth_user->loaded)
 		{
-			return $this->auth->get_user()->id;
+			return TRUE;
 		}
+		
 		//Get username and password
-		elseif (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']))
+		if (isset($_SERVER['PHP_AUTH_USER']) AND isset($_SERVER['PHP_AUTH_PW']))
 		{
 			$username = filter_var($_SERVER['PHP_AUTH_USER'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
 			$password = filter_var($_SERVER['PHP_AUTH_PW'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
-
+			
 			try
 			{
-				if ($this->auth->login($username, $password))
+				// Load the user
+				$user = ORM::factory('user', $username);
+				
+				if ($user->loaded AND $this->auth->check_password($user->id, $password))
 				{
-					return $this->auth->get_user()->id;
+					$this->auth_user = $user;
+					return TRUE;
 				}
 			}
 			catch (Exception $e)
@@ -147,11 +157,11 @@ class Rest_Controller extends Controller {
 	 **/
 	protected function _login_admin()
 	{
-		if ( ! $this->auth->logged_in('login') OR $this->auth->logged_in('member'))
+		if ( $this->auth_user->has(ORM::factory('role','login')) AND $this->auth_user->has_permission('admin_ui') )
 		{
-			return FALSE;
+			return TRUE;
 		}
-		return TRUE;
+		return FALSE;
 	}
 
 	protected function _get_query_parameters()
