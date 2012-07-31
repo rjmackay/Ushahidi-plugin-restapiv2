@@ -209,6 +209,8 @@ class Incidents_Controller extends Rest_Controller {
 				$category_data = $category->as_array();
 				$category_data['category_image'] = $category_data['category_image'] ? url::convert_uploaded_to_abs($category_data['category_image']) : $category_data['category_image'];
 				$category_data['category_image_thumb'] = $category_data['category_image_thumb'] ? url::convert_uploaded_to_abs($category_data['category_image_thumb']) : $category_data['category_image_thumb'];
+				
+				$category_data['api_url'] = url::site(rest_controller::$api_base_url.'/categories/'.$category_data['id']);
 				$incident_array['category'][] = $category_data;
 			}
 		}
@@ -266,6 +268,10 @@ class Incidents_Controller extends Rest_Controller {
 				$incident_array['media'][] = $media_data;
 			}
 		}
+		
+		
+		// Initialize custom field array - only supporting default form
+		$incident_array['custom_field'] = customforms::get_custom_form_fields($incident_array['id'], 1, true);
 		
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
 		
