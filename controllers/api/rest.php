@@ -23,7 +23,7 @@ class Rest_Controller extends Controller {
 	protected $sort = 'DESC';
 	
 	protected $allowed_order_fields = array('id');
-	protected $max_record_limit = 100;
+	protected $max_record_limit = 300;
 	
 	protected $data = array();
 
