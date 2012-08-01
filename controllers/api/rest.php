@@ -157,7 +157,7 @@ class Rest_Controller extends Controller {
 	 **/
 	protected function _login_admin()
 	{
-		if ( $this->auth_user->has(ORM::factory('role','login')) AND $this->auth_user->has_permission('admin_ui') )
+		if ( $this->auth_user instanceof User_Model AND $this->auth_user->has(ORM::factory('role','login')) AND $this->auth_user->has_permission('admin_ui') )
 		{
 			return TRUE;
 		}
