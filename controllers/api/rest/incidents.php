@@ -346,12 +346,27 @@ class Incidents_Controller extends Rest_Controller {
 			'incident_zoom' => isset($data->incident_zoom) ? $data->incident_zoom : null,
 			// message id? user id?
 		);
-		//var_dump($post);
+
 		if (isset($data->category))
 		{
-			foreach($data->category as $cat)
+			foreach ($data->category as $cat)
 			{
 				$post['incident_category'][] = $cat->id;
+			}
+		}
+
+		if (isset($data->media))
+		{
+			foreach($data->media as $media)
+			{
+				if ($media->media_type == 2) // Video
+				{
+					$post['incident_video'][] = $media->media_link;
+				}
+				elseif ($media->media_type == 4) // News
+				{
+					$post['incident_news'][] = $media->media_link;
+				}
 			}
 		}
 
@@ -383,7 +398,7 @@ class Incidents_Controller extends Rest_Controller {
 			reports::save_category($post, $incident);
 
 			// STEP 4: SAVE MEDIA
-			//reports::save_media($post, $incident);
+			reports::save_media($post, $incident);
 
 			// STEP 5: SAVE PERSONAL INFORMATION
 			reports::save_personal_info($post, $incident);
