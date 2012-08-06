@@ -321,10 +321,10 @@ class Incidents_Controller extends Rest_Controller {
 		
 		// Mash data into format expected by reports helper
 		$post = array(
-			'location_id' => $data->location_id,
-			'incident_id' => isset($data->id) ? $data->id : $data->sid,
-			'incident_title' => $data->incident_title,
-			'incident_description' => $data->incident_description,
+			'location_id' => isset($data->location_id) ? $data->location_id : null,
+			'incident_id' => isset($data->id) ? $data->id : (isset($data->sid) ? $data->sid : null),
+			'incident_title' => isset($data->incident_title) ? $data->incident_title : null,
+			'incident_description' => isset($data->incident_description) ? $data->incident_description : null,
 			'incident_date' => date('m/d/Y', $time),
 			'incident_hour' => date('h', $time),
 			'incident_minute' => date('i', $time),
