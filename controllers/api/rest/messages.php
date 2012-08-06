@@ -156,6 +156,13 @@ class Messages_Controller extends Rest_Controller {
 			$message_array['reporter'] = $message->reporter->as_array();
 			$message_array['reporter']['service_name'] = $services[$message->reporter->service_id];
 			$message_array['message_service'] = $services[$message->reporter->service_id];
+			// if message doesn't have location, try swapping reporter location
+			if ($message->latitude == NULL AND $message->longitude == NULL AND $message->reporter->location->loaded)
+			{
+				$message_array['latitude'] = $message->reporter->location->latitude;
+				$message_array['longitude'] = $message->reporter->location->longitude;
+				$message_array['location_name'] = $message->reporter->location->location_name;
+			}
 		}
 		
 		if ($message_array['incident_id'])
