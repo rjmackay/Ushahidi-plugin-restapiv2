@@ -148,6 +148,8 @@ class Messages_Controller extends Rest_Controller {
 			$services = ORM::factory('service')->select_list('id','service_name');
 		}
 		
+		$message_array['updated_at'] = $message_array['message_date'];
+		
 		$message_array['message_service'] = null;
 		if ($message_array['reporter_id'])
 		{
@@ -162,11 +164,12 @@ class Messages_Controller extends Rest_Controller {
 				'api_url' => url::site(rest_controller::$api_base_url.'/incidents/'.$message_array['incident_id']),
 				'url' => url::site('/reports/view/'.$message_array['incident_id'])
 			);
+			// Use incident added time if message has an incident
+			$message_array['updated_at'] = $message->incident->incident_dateadd;
 		}
 		
 		$message_array['api_url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
-		
-		$message_array['updated_at'] = $message_array['message_date'];
+		// Format updated_at value
 		$message_array['updated_at'] = date('c',strtotime($message_array['updated_at']));
 		
 		return $message_array;
