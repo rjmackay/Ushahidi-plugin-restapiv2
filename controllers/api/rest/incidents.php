@@ -344,7 +344,7 @@ class Incidents_Controller extends Rest_Controller {
 			'incident_active' => isset($data->incident_active) ? $data->incident_active : null,
 			'incident_verified' => isset($data->incident_verified) ? $data->incident_verified : null,
 			'incident_zoom' => isset($data->incident_zoom) ? $data->incident_zoom : null,
-			// message id? user id?
+			'message_id' =>  isset($data->message_id) ? $data->message_id : null,
 		);
 
 		if (isset($data->category))
@@ -402,6 +402,30 @@ class Incidents_Controller extends Rest_Controller {
 
 			// STEP 5: SAVE PERSONAL INFORMATION
 			reports::save_personal_info($post, $incident);
+			
+			// STEP 6a: SAVE LINK TO REPORTER MESSAGE
+				// We're creating a report from a message with this option
+				// @todo move to reports helper
+			if (isset($post->message_id) AND intval(isset($post->message_id)))
+			{
+				$savemessage = ORM::factory('message', $post->message_id);
+				if ($savemessage->loaded)
+				{
+					$savemessage->incident_id = $incident->id;
+					$savemessage->save();
+
+					// Does Message Have Attachments?
+					// Add Attachments
+					$attachments = ORM::factory("media")
+						->where("message_id", $savemessage->id)
+						->find_all();
+					foreach ($attachments AS $attachment)
+					{
+						$attachment->incident_id = $incident->id;
+						$attachment->save();
+					}
+				}
+			}
 
 			// Action::report_edit - Edited a Report
 			Event::run('ushahidi_action.report_edit', $incident);
