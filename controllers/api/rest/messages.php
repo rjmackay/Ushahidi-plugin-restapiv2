@@ -163,6 +163,8 @@ class Messages_Controller extends Rest_Controller {
 				$message_array['longitude'] = $message->reporter->location->longitude;
 				$message_array['location_name'] = $message->reporter->location->location_name;
 			}
+			// format date in ISO standard
+			$message_array['reporter']['reporter_date'] = $message_array['reporter']['reporter_date'] != null ? date('c',strtotime($message_array['reporter']['reporter_date'])) : null;
 		}
 		
 		if ($message_array['incident_id'])
@@ -178,6 +180,8 @@ class Messages_Controller extends Rest_Controller {
 		$message_array['api_url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
 		// Format updated_at value
 		$message_array['updated_at'] = date('c',strtotime($message_array['updated_at']));
+		// format all dates in ISO standard
+		$message_array['message_date'] = $message->message_date != null ? date('c',strtotime($message_array['message_date'])) : null;
 		
 		return $message_array;
 	}

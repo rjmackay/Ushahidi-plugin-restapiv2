@@ -246,11 +246,15 @@ class Incidents_Controller extends Rest_Controller {
 		// Add location
 		// @todo filter on location_visible
 		$incident_array['location'] = $incident->location->as_array();
+		// format date in ISO standard
+		$incident_array['location']['location_date'] = $incident_array['location']['location_date'] != null ? date('c',strtotime($incident_array['location']['location_date'])) : null;
 		
 		// Add incident_person
 		if ($this->admin)
 		{
 			$incident_array['incident_person'] = $incident->incident_person->as_array(); //@todo sanitize
+			// format date in ISO standard
+			$incident_array['incident_person']['person_date'] = $incident_array['incident_person']['person_date'] != null ? date('c',strtotime($incident_array['incident_person']['person_date'])) : null;
 		}
 		else
 		{
@@ -268,6 +272,8 @@ class Incidents_Controller extends Rest_Controller {
 			$incident_array['user'] = $incident->user->as_array(); //@todo sanitize
 			unset($incident_array['user']['password']);
 			unset($incident_array['user']['code']);
+			// format date in ISO standard
+			$incident_array['user']['updated'] = $incident_array['user']['updated'] != null ? date('c',strtotime($incident_array['user']['updated'])) : null;
 		}
 		else
 		{
@@ -293,6 +299,8 @@ class Incidents_Controller extends Rest_Controller {
 					$media_data['media_medium'] = url::convert_uploaded_to_abs($media_data['media_medium']);
 					$media_data['media_thumb'] = url::convert_uploaded_to_abs($media_data['media_thumb']);
 				}
+				// format date in ISO standard
+				$media_data['media_date'] = $media_data['media_date'] != null ? date('c',strtotime($media_data['media_date'])) : null;
 				$incident_array['media'][] = $media_data;
 			}
 		}
@@ -305,6 +313,10 @@ class Incidents_Controller extends Rest_Controller {
 		
 		$incident_array['updated_at'] = $incident->incident_datemodify == null ? $incident->incident_dateadd : $incident->incident_datemodify;
 		$incident_array['updated_at'] = date('c',strtotime($incident_array['updated_at']));
+		// format all dates in ISO standard
+		$incident_array['incident_datemodify'] = $incident->incident_datemodify != null ? date('c',strtotime($incident_array['incident_datemodify'])) : null;
+		$incident_array['incident_dateadd'] =$incident->incident_dateadd != null ? date('c',strtotime($incident_array['incident_dateadd'])) : null;
+		$incident_array['incident_date'] =$incident->incident_date != null ? date('c',strtotime($incident_array['incident_date'])) : null;
 		
 		return $incident_array;
 	}
