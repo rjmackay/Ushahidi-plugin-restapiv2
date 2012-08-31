@@ -21,6 +21,7 @@ class Rest_Controller extends Controller {
 	protected $limit = 20;
 	protected $order_field = 'id';
 	protected $sort = 'DESC';
+	protected $since_id = FALSE;
 	
 	protected $allowed_order_fields = array('id');
 	protected $max_record_limit = 300;
@@ -185,6 +186,11 @@ class Rest_Controller extends Controller {
 			elseif ($_GET['sort'] == 'DESC') $this->sort = 'DESC';
 			elseif ($_GET['sort'] == 0) $this->sort = 'ASC';
 			elseif ($_GET['sort'] == 1) $this->sort = 'DESC';
+		}
+
+		if (isset($_GET['since_id']))
+		{
+			$this->since_id = intval($_GET['since_id']);
 		}
 	}
 

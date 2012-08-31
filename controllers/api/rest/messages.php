@@ -125,7 +125,17 @@ class Messages_Controller extends Rest_Controller {
 		{
 			$this->_get_query_parameters();
 			
-			$messages = ORM::factory('message')->where('message IS NOT NULL')->limit($this->limit)->orderby($this->order_field,$this->sort)->find_all();
+			$messages = ORM::factory('message')->
+			  where('message IS NOT NULL')
+			  ->limit($this->limit)
+			  ->orderby($this->order_field,$this->sort);
+
+			if ($this->since_id)
+			{
+				$messages->where('message.id >', $this->since_id);
+			}
+
+			$messages = $messages->find_all();
 			
 			$messages_array = array();
 			foreach ($messages as $message)
