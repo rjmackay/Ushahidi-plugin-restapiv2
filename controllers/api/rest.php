@@ -27,8 +27,6 @@ class Rest_Controller extends Controller {
 	protected $max_record_limit = 300;
 	
 	protected $data = array();
-	
-	protected $auth_user = FALSE;
 
 	public function __construct()
 	{
@@ -119,25 +117,20 @@ class Rest_Controller extends Controller {
 	protected function _login()
 	{
 		// Is user previously authenticated?
-		if ($this->auth_user AND $this->auth_user->loaded)
+		if ($this->auth->logged_in())
 		{
 			return TRUE;
 		}
-		
 		//Get username and password
-		if (isset($_SERVER['PHP_AUTH_USER']) AND isset($_SERVER['PHP_AUTH_PW']))
+		elseif (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']))
 		{
 			$username = filter_var($_SERVER['PHP_AUTH_USER'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
 			$password = filter_var($_SERVER['PHP_AUTH_PW'], FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_HIGH | FILTER_FLAG_ENCODE_LOW);
-			
+
 			try
 			{
-				// Load the user
-				$user = ORM::factory('user', $username);
-				
-				if ($user->loaded AND $this->auth->check_password($user->id, $password))
+				if ($this->auth->login($username, $password))
 				{
-					$this->auth_user = $user;
 					return TRUE;
 				}
 			}
@@ -149,6 +142,7 @@ class Rest_Controller extends Controller {
 			$this->rest_error(401);
 		}
 
+		
 		// No auth details passed - return FALSE (not logged in)
 		return FALSE;
 	}
@@ -158,7 +152,7 @@ class Rest_Controller extends Controller {
 	 **/
 	protected function _login_admin()
 	{
-		if ( $this->auth_user instanceof User_Model AND $this->auth_user->has(ORM::factory('role','login')) AND $this->auth_user->has_permission('admin_ui') )
+		if ( $this->auth->logged_in('login') AND $this->auth->get_user()->has_permission('admin_ui'))
 		{
 			return TRUE;
 		}
