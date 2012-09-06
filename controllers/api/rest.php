@@ -142,6 +142,9 @@ class Rest_Controller extends Controller {
 			$this->rest_error(401);
 		}
 
+		// Fail with a 401 if we admin=1
+		// Bit of a hack but I haven't got a better way to handle it
+		if (!empty($_GET['admin'])) $this->rest_error(401);
 		
 		// No auth details passed - return FALSE (not logged in)
 		return FALSE;
