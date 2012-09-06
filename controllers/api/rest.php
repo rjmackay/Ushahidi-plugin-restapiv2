@@ -82,7 +82,12 @@ class Rest_Controller extends Controller {
 				break;
 			case 401 :
 				header($_SERVER['SERVER_PROTOCOL'] . ' 401 Unauthorized');
-				header('WWW-Authenticate: Basic realm="Ushahidi API"');
+				// Only return WWW-Authenticate header for non ajax requests
+				// otherwise AJAX apps get annoying browser auth popups
+				if (!request::is_ajax())
+				{
+					header('WWW-Authenticate: Basic realm="Ushahidi API"');
+				}
 				$message = $message ? $message : Kohana::lang('restapi_error.error_401', $page);
 				break;
 			case 501 :
