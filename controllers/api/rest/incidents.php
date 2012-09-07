@@ -363,7 +363,7 @@ class Incidents_Controller extends Rest_Controller {
 		{
 			foreach ($data->category as $cat)
 			{
-				$post['incident_category'][] = $cat->id;
+				isset($cat->id) ? $post['incident_category'][] = $cat->id : '';
 			}
 		}
 
@@ -373,11 +373,11 @@ class Incidents_Controller extends Rest_Controller {
 			{
 				if ($media->media_type == 2) // Video
 				{
-					$post['incident_video'][] = $media->media_link;
+					isset($media->media_link) ? $post['incident_video'][] = $media->media_link : "";
 				}
 				elseif ($media->media_type == 4) // News
 				{
-					$post['incident_news'][] = $media->media_link;
+					isset($media->media_link) ? $post['incident_news'][] = $media->media_link : "";
 				}
 			}
 		}
