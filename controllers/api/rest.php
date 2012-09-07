@@ -59,7 +59,7 @@ class Rest_Controller extends Controller {
 		echo json_encode(array(
 			'resources' => $resources,
 			'ushahidi_version' => Kohana::config('settings.ushahidi_version'),
-			'api_version' => self::$api_base_url,
+			'api_version' => self::$api_version,
 			'db_version' => Kohana::config('settings.db_version'),
 		));
 	}
