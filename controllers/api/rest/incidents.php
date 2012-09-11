@@ -330,6 +330,7 @@ class Incidents_Controller extends Rest_Controller {
 	{
 		// Convert time once, so we use the same time() call for all fields
 		$time = isset($data->incident_date) ? strtotime($data->incident_date) : time();
+		$updated_at = isset($data->updated_at) ? strtotime($data->updated_at) : time();
 		
 		// Mash data into format expected by reports helper
 		$post = array(
@@ -398,7 +399,20 @@ class Incidents_Controller extends Rest_Controller {
 			// STEP 2: SAVE INCIDENT
 			$incident_id = $post->incident_id;
 			$incident = new Incident_Model($incident_id);
-			reports::save_report($post, $incident, $location->id);
+			reports::save_report($post, $incident, $location->id, FALSE);
+			
+			// Overwrite datemodify/dateadd based on posted data
+			if ($incident_id != null)
+			{
+				// Edit
+				$incident->incident_datemodify = date("Y-m-d H:i:s", $updated_at);
+			}
+			else
+			{
+				// New
+				$incident->incident_dateadd = date("Y-m-d H:i:s", $updated_at);
+			}
+			$incident->save();
 
 			// STEP 2b: Record Approval/Verification Action
 			reports::verify_approve($incident);
