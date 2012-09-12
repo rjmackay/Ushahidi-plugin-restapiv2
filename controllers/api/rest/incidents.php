@@ -312,11 +312,11 @@ class Incidents_Controller extends Rest_Controller {
 		$incident_array['api_url'] = url::site(rest_controller::$api_base_url.'/incidents/'.$incident_array['id']);
 		
 		$incident_array['updated_at'] = $incident->incident_datemodify == null ? $incident->incident_dateadd : $incident->incident_datemodify;
-		$incident_array['updated_at'] = date('c',strtotime($incident_array['updated_at']));
+		$incident_array['updated_at'] = date_create($incident_array['updated_at'])->format(DateTime::W3C);
 		// format all dates in ISO standard
-		$incident_array['incident_datemodify'] = $incident->incident_datemodify != null ? date('c',strtotime($incident_array['incident_datemodify'])) : null;
-		$incident_array['incident_dateadd'] =$incident->incident_dateadd != null ? date('c',strtotime($incident_array['incident_dateadd'])) : null;
-		$incident_array['incident_date'] =$incident->incident_date != null ? date('c',strtotime($incident_array['incident_date'])) : null;
+		$incident_array['incident_datemodify'] = $incident->incident_datemodify != null ? date_create($incident_array['incident_datemodify'])->format(DateTime::W3C) : null;
+		$incident_array['incident_dateadd'] = $incident->incident_dateadd != null ? date_create($incident_array['incident_dateadd'])->format(DateTime::W3C) : null;
+		$incident_array['incident_date'] = $incident->incident_date != null ? date_create($incident_array['incident_date'])->format(DateTime::W3C) : null;
 		
 		return $incident_array;
 	}
@@ -328,9 +328,14 @@ class Incidents_Controller extends Rest_Controller {
 	 */
 	private function save_incident($data)
 	{
-		// Convert time once, so we use the same time() call for all fields
-		$time = isset($data->incident_date) ? strtotime($data->incident_date) : time();
-		$updated_at = isset($data->updated_at) ? strtotime($data->updated_at) : time();
+		// Convert dates to DateTime objects
+		$incident_date = isset($data->incident_date) ? date_create($data->incident_date, new DateTimeZone('UTC')) : new DateTime();
+		$incident_date = ($incident_date instanceof DateTime) ? $incident_date : new DateTime();
+		$updated_at = isset($data->updated_at) ? date_create($data->updated_at, new DateTimeZone('UTC')) : new DateTime();
+		$updated_at = ($updated_at instanceof DateTime) ? $updated_at : new DateTime();
+		// Change to site timezone
+		$incident_date->setTimezone(new DateTimeZone(date_default_timezone_get()));
+		$updated_at->setTimezone(new DateTimeZone(date_default_timezone_get()));
 		
 		// Mash data into format expected by reports helper
 		$post = array(
@@ -338,10 +343,10 @@ class Incidents_Controller extends Rest_Controller {
 			'incident_id' => isset($data->id) ? $data->id : (isset($data->sid) ? $data->sid : null),
 			'incident_title' => isset($data->incident_title) ? $data->incident_title : null,
 			'incident_description' => isset($data->incident_description) ? $data->incident_description : null,
-			'incident_date' => date('m/d/Y', $time),
-			'incident_hour' => date('h', $time),
-			'incident_minute' => date('i', $time),
-			'incident_ampm' => date('a', $time),
+			'incident_date' => $incident_date->format('m/d/Y'),
+			'incident_hour' => $incident_date->format('h'),
+			'incident_minute' => $incident_date->format('i'),
+			'incident_ampm' => $incident_date->format('a'),
 			'latitude' => isset($data->location->latitude) ? $data->location->latitude : null,
 			'longitude' => isset($data->location->longitude) ? $data->location->longitude : null,
 			'location_name' => isset($data->location->location_name) ? $data->location->location_name : null,
@@ -405,12 +410,12 @@ class Incidents_Controller extends Rest_Controller {
 			if ($incident_id != null)
 			{
 				// Edit
-				$incident->incident_datemodify = date("Y-m-d H:i:s", $updated_at);
+				$incident->incident_datemodify = $updated_at->format("Y-m-d H:i:s");
 			}
 			else
 			{
 				// New
-				$incident->incident_dateadd = date("Y-m-d H:i:s", $updated_at);
+				$incident->incident_dateadd = $updated_at->format("Y-m-d H:i:s");
 			}
 			$incident->save();
 

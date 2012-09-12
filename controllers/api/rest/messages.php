@@ -174,7 +174,7 @@ class Messages_Controller extends Rest_Controller {
 				$message_array['location_name'] = $message->reporter->location->location_name;
 			}
 			// format date in ISO standard
-			$message_array['reporter']['reporter_date'] = $message_array['reporter']['reporter_date'] != null ? date('c',strtotime($message_array['reporter']['reporter_date'])) : null;
+			$message_array['reporter']['reporter_date'] = $message_array['reporter']['reporter_date'] != null ? date_create($message_array['reporter']['reporter_date'])->format(DateTime::W3C) : null;
 		}
 		
 		if ($message_array['incident_id'])
@@ -189,9 +189,9 @@ class Messages_Controller extends Rest_Controller {
 		
 		$message_array['api_url'] = url::site(rest_controller::$api_base_url.'/messages/'.$message_array['id']);
 		// Format updated_at value
-		$message_array['updated_at'] = date('c',strtotime($message_array['updated_at']));
+		$message_array['updated_at'] = date_create($message_array['updated_at'])->format(DateTime::W3C);
 		// format all dates in ISO standard
-		$message_array['message_date'] = $message->message_date != null ? date('c',strtotime($message_array['message_date'])) : null;
+		$message_array['message_date'] = $message->message_date != null ? date_create($message_array['message_date'])->format(DateTime::W3C) : null;
 		
 		return $message_array;
 	}
